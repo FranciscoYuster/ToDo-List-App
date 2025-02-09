@@ -1,59 +1,98 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react';
 
 export const Home = () => {
-  
-  const [todos, setTodos] = useState([
-    { done: false, title: 'Make the bed', id: Math.random() * 10},
-    { done: false, title: 'Wahs my hands', id: Math.random() * 10},
-    { done: false, title: 'Eat', id: Math.random() * 10},
-    { done: false, title: 'Walk the dog', id: Math.random() * 10}
-  ]);
+  const apiUrl = 'https://playground.4geeks.com/todo/users/franciscoYuster';
+  const todosURL = 'https://playground.4geeks.com/todo/todos/franciscoYuster';
 
+  const [todos, setTodos] = useState([]);
   const [taskInput, setTaskInput] = useState('');
 
-  const handleFormSumbit =  (e) => {
+  useEffect(() => {
+    fetch(apiUrl)
+      .then(response => {
+        if (response.status === 404) {
+          return fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: "franciscoYuster" })
+          });
+        }
+        return response;
+      })
+      .then(() => fetchTasks())
+      .catch(error => console.error('Error verificando/creando usuario:', error));
+  }, []);
+
+  const fetchTasks = () => {
+    fetch(apiUrl)
+      .then(response => response.json())
+      .then(data => setTodos(data.todos || []))
+      .catch(error => console.error('Error obteniendo tareas:', error));
+  };
+
+  const handleFormSubmit = (e) => {
     e.preventDefault();
-    setTodos([
-      ...todos,
-      { title: taskInput, done: false, id: Math.random() * 10}
-    ]);
+    if (!taskInput.trim()) return;
+
+    fetch(todosURL, {
+      method: 'POST',
+      body: JSON.stringify({ label: taskInput, is_done: false }),
+      headers: { 'Content-Type': 'application/json' }
+    })
+      .then(() => fetchTasks())
+      .catch(error => console.error('Error agregando tarea', error));
+
     setTaskInput('');
-  }
+  };
 
   const eliminar = (taskId) => {
-    setTodos(todos.filter(task => task.id !==taskId));
-  }
+    fetch(`https://playground.4geeks.com/todo/todos/${taskId}`, {
+      method: 'DELETE'
+    })
+      .then(() => fetchTasks())
+      .catch(error => console.error('Error eliminando tarea', error));
+  };
 
-  const nuevaTarea = todos.map(task => (
-    <li key={task.id}>
-      <div className="view">
-        <label>{task.title}</label>
-        <button className="destroy" onClick={() => eliminar(task.id)} >x</button>
-      </div>
-    </li>
-  ))
-
+  const clearAllTask = () => {
+    fetch(apiUrl, {
+      method: 'DELETE'
+    })
+      .then(() => setTodos([]))
+      .catch(error => console.error('Error eliminando todas las tareas', error));
+  };
 
   return (
     <>
       <section className="todoapp">
         <header className="header">
-          <h1>To Do</h1>
-          <form onSubmit={handleFormSumbit}>
-            <input autoFocus={true} className='new-todo' placeholder='What need to be done?' value={taskInput} onChange={(e) => setTaskInput(e.target.value)}/>
+          <h1>To Do List</h1>
+          <form onSubmit={handleFormSubmit}>
+            <input
+              autoFocus={true}
+              className='new-todo'
+              placeholder='What needs to be done?'
+              value={taskInput}
+              onChange={(e) => setTaskInput(e.target.value)}
+            />
           </form>
         </header>
-        <setcion className="main">
+        <section className="main">
           <ul className="todo-list">
-            {nuevaTarea}
+            {todos.map((task) => (
+              <li key={task.id}>
+                <label>{task.label}</label>
+                <button onClick={() => eliminar(task.id)}>x</button>
+              </li>
+            ))}
           </ul>
-        </setcion>
+        </section>
         <footer className="footer">
           <span className="todo-count">
-            <strong>{todos.filter(task => !task.done).length}</strong> item left
+            <strong>{todos.length}</strong> items left
           </span>
+          <button className="btn" onClick={clearAllTask}>Clear All</button>
         </footer>
       </section>
     </>
-  )
-}
+  );
+};

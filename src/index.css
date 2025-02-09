@@ -31,7 +31,21 @@ body {
     font-size: 16px;
     border: 1px solid ;
     border-radius: 5px;
-    outline: none;
+  }
+
+  .btn {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    color: white;
+    background-color: #171717;
+    width: 60%;
+    margin: auto;
+    padding: 5px 8px;
+    border: none;
+    border-radius: .7rem;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
   }
   
   .new-todo:focus {
@@ -80,6 +94,8 @@ body {
   }
   
   .footer {
+    display: flex;
+    flex-direction: column;
     text-align: center;
     margin-top: 10px;
     font-size: 14px;
@@ -88,5 +104,5 @@ body {
   
   .todo-count {
     font-weight: bold;
+    margin: 0 0 20px 0;
   }
-  
